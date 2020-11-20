@@ -25,6 +25,8 @@ The css for the popup can be changed in two ways:
 
 **This script is not compatible with the "kanjax with koohii" script.** If you try to use both, very bad things will happen. I'm still investigating the reason for the incompatibility, and I'll update the script if I figure it out.
 
+**This script can cause issues with ichi.moe, or other embedded sites.** If you use an embed like that, make sure that it is not contained within `<div id="kanjiHover">`.
+
 Other than that, there very well may be more errors that come up. If you find anything, either make an issue or message me on Discord.
 
 # Sources
