@@ -5,7 +5,8 @@ A kanji script for Anki
 
 # How To Use
 
-Download \_kanjiHover.js and add the following line to your note:
+Download \_kanjiHover.js and add it to your collection.media folder.
+Add the following line to your note:
 
 `<script src ="_kanjiHover.js"></script>`
 
