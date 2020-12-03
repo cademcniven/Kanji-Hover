@@ -7,13 +7,14 @@ if (isOnline() && body) {
   appendCSS()
   findKanji()
   getKanjiData()
+
 }
 
-function isOnline () {
+function isOnline() {
   return navigator.onLine
 }
 
-function findKanji () {
+function findKanji() {
   const regex = /[\u4E00-\u9FAF]/g
   const matches = body.matchAll(regex)
   for (const match of matches) {
@@ -21,7 +22,7 @@ function findKanji () {
   }
 }
 
-function getKanjiData () {
+function getKanjiData() {
   for (let kanji of kanjis) {
     let url = 'https://kanjiapi.dev/v1/kanji/' + kanji
 
@@ -37,9 +38,9 @@ function getKanjiData () {
   }
 }
 
-function buildString (kanji, data) {
+function buildString(kanji, data) {
   let s =
-    '<div class="kanjiTooltip">' + kanji + '<span class="kanjiTooltipText">'
+    '<a class="kanjiTooltip" onclick="kanjiClicked(event)" href="https://en.wiktionary.org/wiki/' + kanji + '#Japanese">' + kanji + '<span class="kanjiTooltipText">'
   s += '<span class="hoverText">Kanji:</span> ' + data.kanji + '<br>'
   s += '<span class="hoverText">Grade:</span> ' + data.grade + '<br>'
   s += '<span class="hoverText">Meaning:</span> '
@@ -68,14 +69,14 @@ function buildString (kanji, data) {
     s += '<br>'
   }
 
-  s += '</span></div>'
+  s += '</span></a>'
 
   arr.push({
     [kanji]: s
   })
 }
 
-function convertJSON () {
+function convertJSON() {
   if (arr.length == kanjis.size) {
     const res = arr.reduce((acc, el) => {
       for (let key in el) {
@@ -90,13 +91,19 @@ function convertJSON () {
   }
 }
 
-function appendCSS () {
+function appendCSS() {
   var styleSheet = document.createElement('style')
   styleSheet.innerHTML = `
     .kanjiTooltip {
       position: relative;
       display: inline-block;
-      cursor: pointer
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      user-drag: none; 
+      -webkit-user-drag: none;
+      user-select: text;
+      outline: none;
     }
 
     .kanjiTooltip .kanjiTooltipText {
@@ -114,19 +121,26 @@ function appendCSS () {
       left: 50%;
       -webkit-transform: translate(-50%, -50%);
       transform: translate(-50%, -50%);
-
       font-size: 18px;
+      writing-mode: horizontal-tb;
     }
 
     .kanjiTooltip:hover .kanjiTooltipText {
       visibility: visible;
     }
+
+    .kanjiTooltipText {
+      user-select: none; 
+    }
     
     .hoverText {
       color: #e95464;
     }
-    
     `
 
   document.head.appendChild(styleSheet)
+}
+
+function kanjiClicked(e) {
+  if (e.button == 0) e.preventDefault() //disable left clicking (in order to allow for selecting)
 }
