@@ -1,13 +1,14 @@
 var body = document.getElementById('kanjiHover')
 if (body) body = body.innerHTML
-var kanjis = new Set()
-var arr = []
+var kanji = new Set()
+var kanjiDict = {}
 
 if (isOnline() && body) {
   appendCSS()
   findKanji()
-  getKanjiData()
-
+  getKanjiData().then(r => {
+    injectKanjiHTML()
+  })
 }
 
 function isOnline() {
@@ -18,51 +19,50 @@ function findKanji() {
   const regex = /[\u4E00-\u9FAF]/g
   const matches = body.matchAll(regex)
   for (const match of matches) {
-    kanjis.add(...match)
+    kanji.add(...match)
   }
 }
 
-function getKanjiData() {
-  for (let kanji of kanjis) {
-    let url = 'https://kanjiapi.dev/v1/kanji/' + kanji
+async function getKanjiData() {
+  kanji = [...kanji]
+  let kanjiArr = await Promise.all(
+    kanji.map(async character => {
+      let res = await fetch('https://kanjiapi.dev/v1/kanji/' + character)
+      return res.json()
+    })
+  )
 
-    fetch(url)
-      .then(resp => resp.json())
-      .then(function (data) {
-        buildString(kanji, data)
-      })
-      .then(function () {
-        convertJSON()
-        document.getElementById('kanjiHover').innerHTML = body
-      })
+  //populate dictionary with kanji as key
+  for (item of kanjiArr) {
+    kanjiDict[item["kanji"]] = item
   }
 }
 
-function buildString(kanji, data) {
+function buildString(kanji) {
   let s =
     '<a class="kanjiTooltip" onclick="kanjiClicked(event)" href="https://en.wiktionary.org/wiki/' + kanji + '#Japanese">' + kanji + '<span class="kanjiTooltipText">'
-  s += '<span class="hoverText">Kanji:</span> ' + data.kanji + '<br>'
-  s += '<span class="hoverText">Grade:</span> ' + data.grade + '<br>'
+  s += '<span class="hoverText">Kanji:</span> ' + kanji + '<br>'
+  s += '<span class="hoverText">Grade:</span> ' + kanjiDict[kanji].grade + '<br>'
   s += '<span class="hoverText">Meaning:</span> '
-  for (let str of data.meanings) {
+  for (let str of kanjiDict[kanji].meanings) {
     s += str + ', '
   }
 
   s = s.slice(0, -2)
   s += '<br>'
 
-  if (data.kun_readings.length > 0) {
+  if (kanjiDict[kanji].kun_readings.length > 0) {
     s += '<span class="hoverText">Kun\'yomi:</span> '
-    for (let str of data.kun_readings) {
+    for (let str of kanjiDict[kanji].kun_readings) {
       s += str + ', '
     }
     s = s.slice(0, -2)
     s += '<br>'
   }
 
-  if (data.on_readings.length > 0) {
+  if (kanjiDict[kanji].on_readings.length > 0) {
     s += '<span class="hoverText">On\'yomi:</span> '
-    for (let str of data.on_readings) {
+    for (let str of kanjiDict[kanji].on_readings) {
       s += str + ', '
     }
     s = s.slice(0, -2)
@@ -71,24 +71,7 @@ function buildString(kanji, data) {
 
   s += '</span></a>'
 
-  arr.push({
-    [kanji]: s
-  })
-}
-
-function convertJSON() {
-  if (arr.length == kanjis.size) {
-    const res = arr.reduce((acc, el) => {
-      for (let key in el) {
-        acc[key] = [...(acc[key] || []), el[key]]
-      }
-      return acc
-    }, {})
-
-    Object.entries(res).forEach(([key, value]) => {
-      body = body.replace(new RegExp(key, 'g'), ...value)
-    })
-  }
+  return s
 }
 
 function appendCSS() {
@@ -137,10 +120,23 @@ function appendCSS() {
       color: #e95464;
     }
     `
-
   document.head.appendChild(styleSheet)
 }
 
 function kanjiClicked(e) {
   if (e.button == 0) e.preventDefault() //disable left clicking (in order to allow for selecting)
+}
+
+function injectKanjiHTML() {
+  var str = document.getElementById("kanjiHover").innerHTML
+
+  var re = new RegExp(Object.keys(kanjiDict).join("|"), "gi");
+  str = str.replace(re, function (matched) {
+    if (kanjiDict[matched])
+      return buildString(matched)
+
+    return matched
+  });
+
+  document.getElementById("kanjiHover").innerHTML = str
 }
