@@ -42,7 +42,8 @@ function buildString(kanji) {
   let s =
     '<a class="kanjiTooltip" onclick="kanjiClicked(event)" href="https://en.wiktionary.org/wiki/' + kanji + '#Japanese">' + kanji + '<span class="kanjiTooltipText">'
   s += '<span class="hoverText">Kanji:</span> ' + kanji + '<br>'
-  s += '<span class="hoverText">Grade:</span> ' + kanjiDict[kanji].grade + '<br>'
+  if (kanjiDict[kanji].grade)
+    s += '<span class="hoverText">Grade:</span> ' + kanjiDict[kanji].grade + '<br>'
   s += '<span class="hoverText">Meaning:</span> '
   for (let str of kanjiDict[kanji].meanings) {
     s += str + ', '
