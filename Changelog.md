@@ -2,6 +2,10 @@
 
 ----
 
+**December 29, 2020**
+
+* Grade will no longer display if grade is null
+
 **December 3, 2020 (V2)**
 
 * Middle-mouse-clicking a kanji will now open the wikitionary entry for that kanji
