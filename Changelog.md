@@ -2,6 +2,10 @@
 
 ----
 
+**January 2, 2021**
+
+* Increased width on mobile devices
+
 **December 29, 2020**
 
 * Grade will no longer display if grade is null

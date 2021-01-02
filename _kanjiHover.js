@@ -120,6 +120,10 @@ function appendCSS() {
     .hoverText {
       color: #e95464;
     }
+
+    @media only screen and (max-width: 768px) {
+        #kanjiPopup {width: 90vw;}
+    } 
     `
   document.head.appendChild(styleSheet)
 }
