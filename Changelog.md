@@ -2,6 +2,10 @@
 
 ----
 
+**June 18, 2022**
+
+* Rewrote the script to work in a totally different way. It should look identical, but now it works on newer versions of anki
+
 **January 2, 2021**
 
 * Increased width on mobile devices
