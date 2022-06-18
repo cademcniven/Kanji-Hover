@@ -3,16 +3,23 @@ if (body) body = body.innerHTML
 var kanji = new Set()
 var kanjiDict = {}
 
-if (isOnline() && body) {
+if (body) {
   appendCSS()
+  appendHoverDiv()
   findKanji()
   getKanjiData().then(r => {
-    injectKanjiHTML()
+    let kanjiTargets = document.getElementsByClassName("kanjiHoverTarget")
+    Array.from(kanjiTargets).forEach(function (element) {
+      element.addEventListener('mouseenter', onKanjiHover)
+      element.addEventListener('mouseleave', onKanjiUnhover)
+    });
   })
 }
 
-function isOnline() {
-  return navigator.onLine
+function appendHoverDiv() {
+  var hoverDiv = document.createElement('div')
+  hoverDiv.classList.add("hoverDiv")
+  document.body.appendChild(hoverDiv)
 }
 
 function findKanji() {
@@ -21,6 +28,9 @@ function findKanji() {
   for (const match of matches) {
     kanji.add(...match)
   }
+
+  body = body.replace(regex, (match) => `<span class="kanjiHoverTarget">${match}</span>`)
+  document.getElementById('kanjiHover').innerHTML = body;
 }
 
 async function getKanjiData() {
@@ -34,102 +44,20 @@ async function getKanjiData() {
 
   //populate dictionary with kanji as key
   for (item of kanjiArr) {
-    kanjiDict[item["kanji"]] = item
+    kanjiDict[item["kanji"]] = buildString(item)
   }
 }
 
-function buildString(kanji) {
-  let s =
-    '<a class="kanjiTooltip" onclick="kanjiClicked(event)" href="https://en.wiktionary.org/wiki/' + kanji + '#Japanese">' + kanji + '<span class="kanjiTooltipText">'
-  s += '<span class="hoverText">Kanji:</span> ' + kanji + '<br>'
-  if (kanjiDict[kanji].grade)
-    s += '<span class="hoverText">Grade:</span> ' + kanjiDict[kanji].grade + '<br>'
-  s += '<span class="hoverText">Meaning:</span> '
-  for (let str of kanjiDict[kanji].meanings) {
-    s += str + ', '
-  }
-
-  s = s.slice(0, -2)
-  s += '<br>'
-
-  if (kanjiDict[kanji].kun_readings.length > 0) {
-    s += '<span class="hoverText">Kun\'yomi:</span> '
-    for (let str of kanjiDict[kanji].kun_readings) {
-      s += str + ', '
-    }
-    s = s.slice(0, -2)
-    s += '<br>'
-  }
-
-  if (kanjiDict[kanji].on_readings.length > 0) {
-    s += '<span class="hoverText">On\'yomi:</span> '
-    for (let str of kanjiDict[kanji].on_readings) {
-      s += str + ', '
-    }
-    s = s.slice(0, -2)
-    s += '<br>'
-  }
-
-  s += '</span></a>'
-
-  return s
+function onKanjiHover(event) {
+  let hoverDiv = document.getElementsByClassName("hoverDiv")[0]
+  hoverDiv.innerHTML = kanjiDict[event.target.innerHTML]
+  hoverDiv.style.display = "block"
 }
 
-function appendCSS() {
-  var styleSheet = document.createElement('style')
-  styleSheet.innerHTML = `
-    .kanjiTooltip {
-      position: relative;
-      display: inline-block;
-      cursor: pointer;
-      text-decoration: none;
-      color: inherit;
-      user-drag: none; 
-      -webkit-user-drag: none;
-      user-select: text;
-      outline: none;
-    }
-
-    .kanjiTooltip .kanjiTooltipText {
-      visibility: hidden;
-      width: 30vw;
-      background-color: #1E1A1E;
-      color: #fff;
-      text-align: center;
-      padding: 5px 0;
-      border-radius: 6px;
-      z-index: 1;
-      display: inline-block;
-      position: fixed;
-       top: 50%;
-      left: 50%;
-      -webkit-transform: translate(-50%, -50%);
-      transform: translate(-50%, -50%);
-      font-size: 18px;
-      writing-mode: horizontal-tb;
-    }
-
-    .kanjiTooltip:hover .kanjiTooltipText {
-      visibility: visible;
-    }
-
-    .kanjiTooltipText {
-      user-select: none; 
-    }
-    
-    .hoverText {
-      color: #e95464;
-    }
-
-    @media only screen and (max-width: 768px) {
-        #kanjiPopup {width: 90vw;}
-    } 
-    `
-  document.head.appendChild(styleSheet)
-}
-
-function kanjiClicked(e) {
-  if (e.button == 0) e.preventDefault() //disable left clicking (in order to allow for selecting)
+function onKanjiUnhover(event) {
+  let hoverDiv = document.getElementsByClassName("hoverDiv")[0]
+  hoverDiv.innerHtml = ""
+  hoverDiv.style.display = "none"
 }
 
 function injectKanjiHTML() {
@@ -144,4 +72,72 @@ function injectKanjiHTML() {
   });
 
   document.getElementById("kanjiHover").innerHTML = str
+}
+
+function buildString(kanjiData) {
+  let s = '<span class="hoverText">Kanji:</span> ' + kanjiData.kanji + '<br>'
+  if (kanjiData.grade)
+    s += '<span class="hoverText">Grade:</span> ' + kanjiData.grade + '<br>'
+  s += '<span class="hoverText">Meaning:</span> '
+  for (let str of kanjiData.meanings) {
+    s += str + ', '
+  }
+
+  s = s.slice(0, -2)
+  s += '<br>'
+
+  if (kanjiData.kun_readings.length > 0) {
+    s += '<span class="hoverText">Kun\'yomi:</span> '
+    for (let str of kanjiData.kun_readings) {
+      s += str + ', '
+    }
+    s = s.slice(0, -2)
+    s += '<br>'
+  }
+
+  if (kanjiData.on_readings.length > 0) {
+    s += '<span class="hoverText">On\'yomi:</span> '
+    for (let str of kanjiData.on_readings) {
+      s += str + ', '
+    }
+    s = s.slice(0, -2)
+    s += '<br>'
+  }
+
+  s += '</span>'
+
+  return s
+}
+
+function appendCSS() {
+  var styleSheet = document.createElement('style')
+  styleSheet.innerHTML = `
+  .hoverDiv {
+    position: absolute;
+    width: 30vw;
+    background-color: #1E1A1E;
+    color: #fff;
+    text-align: center;
+    padding: 5px 0;
+    border-radius: 6px;
+    z-index: 1;
+    display: none;
+    position: fixed;
+      top: 50%;
+    left: 50%;
+    -webkit-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+    font-size: 18px;
+    writing-mode: horizontal-tb;
+  }
+  
+  .hoverText {
+    color: #e95464;
+  }
+
+  @media only screen and (max-width: 768px) {
+      .hoverDiv {width: 90vw;}
+  } 
+  `
+  document.head.appendChild(styleSheet)
 }
