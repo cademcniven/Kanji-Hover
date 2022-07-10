@@ -23,7 +23,7 @@ function appendHoverDiv() {
 }
 
 function findKanji() {
-  const regex = /[\u4E00-\u9FAF]/g
+  const regex = /([\u4E00-\u9FAF])(?![^<]*>|[^<>]*<\/g)/g
   const matches = body.matchAll(regex)
   for (const match of matches) {
     kanji.add(...match)
