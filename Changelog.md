@@ -2,6 +2,10 @@
 
 ----
 
+**July, 10, 2022**
+
+* Kanji hover will no longer modify kanji that are in html tags (this was a problem for filenames of images/audio)
+
 **June 18, 2022**
 
 * Rewrote the script to work in a totally different way. It should look identical, but now it works on newer versions of anki
