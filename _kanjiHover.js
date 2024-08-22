@@ -1,17 +1,39 @@
-var body = document.getElementById('kanjiHover')
-if (body) body = body.innerHTML
+var currentKanji = null
+
+var hoverDiv = document.getElementsByClassName("hoverDiv")
+if (hoverDiv.length !== 0)
+{
+  hoverDiv[0].innerHtml = ""
+  hoverDiv[0].style.display = "none"
+}
+var mainDiv = document.getElementById('kanjiHover')
+if (!mainDiv) mainDiv = document.getElementById('kanjiHoverFront')
+if (mainDiv) var body = mainDiv.innerHTML
 var kanji = new Set()
 var kanjiDict = {}
 
-if (body) {
+
+if (mainDiv) {
   appendCSS()
   appendHoverDiv()
   findKanji()
   getKanjiData().then(r => {
+    document.addEventListener('touchmove', function(event) {
+        var touch = event.touches[0] || event.changedTouches[0];
+        var targetElement = document.elementFromPoint(touch.clientX, touch.clientY);
+
+        if (targetElement && targetElement.classList.contains('kanjiHoverTarget'))
+          showKanjiPopup(targetElement.innerHTML)
+        else
+          onKanjiUnhover(event)
+    });
+    document.addEventListener('touchend', onKanjiUnhover);
+
     let kanjiTargets = document.getElementsByClassName("kanjiHoverTarget")
     Array.from(kanjiTargets).forEach(function (element) {
-      element.addEventListener('mouseenter', onKanjiHover)
-      element.addEventListener('mouseleave', onKanjiUnhover)
+        element.addEventListener('mouseenter', onKanjiHover);
+        element.addEventListener('mouseleave', onKanjiUnhover);
+        element.addEventListener('touchstart', onKanjiHover);
     });
   })
 }
@@ -30,7 +52,7 @@ function findKanji() {
   }
 
   body = body.replace(regex, (match) => `<span class="kanjiHoverTarget">${match}</span>`)
-  document.getElementById('kanjiHover').innerHTML = body;
+  mainDiv.innerHTML = body;
 }
 
 async function getKanjiData() {
@@ -49,29 +71,28 @@ async function getKanjiData() {
 }
 
 function onKanjiHover(event) {
-  let hoverDiv = document.getElementsByClassName("hoverDiv")[0]
-  hoverDiv.innerHTML = kanjiDict[event.target.innerHTML]
-  hoverDiv.style.display = "block"
+  let kanji = event.target.innerHTML
+  showKanjiPopup(kanji)
 }
 
 function onKanjiUnhover(event) {
-  let hoverDiv = document.getElementsByClassName("hoverDiv")[0]
-  hoverDiv.innerHtml = ""
-  hoverDiv.style.display = "none"
+  if (currentKanji != null)
+  {
+    let hoverDiv = document.getElementsByClassName("hoverDiv")[0]
+    hoverDiv.innerHtml = ""
+    hoverDiv.style.display = "none"
+    currentKanji = null
+  }
 }
 
-function injectKanjiHTML() {
-  var str = document.getElementById("kanjiHover").innerHTML
-
-  var re = new RegExp(Object.keys(kanjiDict).join("|"), "gi");
-  str = str.replace(re, function (matched) {
-    if (kanjiDict[matched])
-      return buildString(matched)
-
-    return matched
-  });
-
-  document.getElementById("kanjiHover").innerHTML = str
+function showKanjiPopup(kanji) {
+  if (currentKanji != kanji)
+  {
+    let hoverDiv = document.getElementsByClassName("hoverDiv")[0]
+    hoverDiv.innerHTML = kanjiDict[kanji]
+    hoverDiv.style.display = "block"
+    currentKanji = kanji
+  }
 }
 
 function buildString(kanjiData) {
@@ -113,18 +134,16 @@ function appendCSS() {
   var styleSheet = document.createElement('style')
   styleSheet.innerHTML = `
   .hoverDiv {
-    position: absolute;
     width: 30vw;
     background-color: #1E1A1E;
     color: #fff;
     text-align: center;
-    padding: 5px 0;
-    border-radius: 6px;
-    z-index: 1;
     display: none;
     position: fixed;
-      top: 50%;
-    left: 50%;
+	padding: 5px 0;
+	border-radius: 6px;
+    left: 50vw;
+    top: 50vh;
     -webkit-transform: translate(-50%, -50%);
     transform: translate(-50%, -50%);
     font-size: 18px;
@@ -137,7 +156,7 @@ function appendCSS() {
 
   @media only screen and (max-width: 768px) {
       .hoverDiv {width: 90vw;}
-  } 
+  }
   `
   document.head.appendChild(styleSheet)
 }
