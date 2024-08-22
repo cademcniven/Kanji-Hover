@@ -2,7 +2,12 @@
 
 ----
 
-**July, 10, 2022**
+**August 22, 2024**
+
+*  This should now work with touch screen (thanks to Discord user @fallingluma)
+*  Fixed a bug in safari/ios (Discord user @fallingluma)
+
+**July 10, 2022**
 
 * Kanji hover will no longer modify kanji that are in html tags (this was a problem for filenames of images/audio)
 
